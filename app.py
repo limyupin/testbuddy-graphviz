@@ -252,6 +252,9 @@ def generate_png_from_dot_file(dot_filepath, signal_generator_image='signal_gene
         raise Exception(f"Failed to generate PNG: {str(e)}")
 
 if __name__ == '__main__':
+    # Get port from environment variable for Render deployment
+    port = int(os.environ.get('PORT', 5000))
+    
     print("Starting GraphViz PNG Generator API...")
     print("Available endpoints:")
     print("  GET  /                     - API documentation")
@@ -263,4 +266,5 @@ if __name__ == '__main__':
     print("  GET  /download/<filename>  - Download generated PNG")
     print()
     
+    debug_mode = os.environ.get('FLASK_ENV') != 'production'
     app.run(debug=True, host='0.0.0.0', port=5000)
