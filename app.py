@@ -11,6 +11,8 @@ import tempfile
 import uuid
 from pathlib import Path
 import logging
+import shutil
+import subprocess
 
 app = Flask(__name__)
 CORS(app)  # Enable CORS for all routes
@@ -27,6 +29,41 @@ ALLOWED_EXTENSIONS = {'dot', 'gv'}
 # Ensure directories exist
 os.makedirs(UPLOAD_FOLDER, exist_ok=True)
 os.makedirs(OUTPUT_FOLDER, exist_ok=True)
+
+def configure_graphviz():
+    """Configure Graphviz executable paths"""
+    try:
+        # Try to find dot executable
+        dot_path = shutil.which('dot')
+        if dot_path:
+            logger.info(f"Found Graphviz dot executable at: {dot_path}")
+            # Test if it works
+            result = subprocess.run(['dot', '-V'], capture_output=True, text=True)
+            logger.info(f"Graphviz version: {result.stderr}")
+            return True
+        else:
+            logger.error("Graphviz dot executable not found in PATH")
+            # Try common installation paths
+            common_paths = [
+                '/usr/bin/dot',
+                '/usr/local/bin/dot', 
+                '/opt/homebrew/bin/dot',
+                '/usr/bin/graphviz/dot'
+            ]
+            for path in common_paths:
+                if os.path.exists(path):
+                    logger.info(f"Found Graphviz at: {path}")
+                    os.environ['PATH'] = f"{os.path.dirname(path)}:{os.environ.get('PATH', '')}"
+                    return True
+            return False
+    except Exception as e:
+        logger.error(f"Error configuring Graphviz: {str(e)}")
+        return False
+
+# Configure Graphviz on startup
+graphviz_available = configure_graphviz()
+if not graphviz_available:
+    logger.warning("Graphviz not properly configured. PNG generation may fail.")
 
 def allowed_file(filename):
     """Check if file has allowed extension"""
