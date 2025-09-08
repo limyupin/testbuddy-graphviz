@@ -1,0 +1,103 @@
+digraph harmonic_distortion_test {
+    // Graph settings
+    rankdir=LR;
+    node [shape=box, style=filled, fontname="Arial"];
+    edge [fontname="Arial", fontsize=10];
+    
+    // Force ranking to organize layout - legend at top left
+    {rank=source; legend_cluster;}
+    {rank=same; signal_gen; power_supply;}
+    {rank=same; input_atten; dmm;}
+    {rank=same; dut;}
+    {rank=same; output_atten; load;}
+    {rank=sink; thd_analyzer;}
+    
+    // Legend subgraph - positioned at top left
+    subgraph cluster_legend { 
+        label = "Legend";
+        fontname = "Arial";
+        rankdir=TB;
+        rank=source;
+        node [shape=plaintext, style="", fillcolor=none];
+        legend_cluster [style=invis]; // invisible node for ranking
+        key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+            <tr><td align="left" port="i1" width="150">Main Signal Path</td></tr>
+            <tr><td align="left" port="i2">Power Connection</td></tr>
+            <tr><td align="left" port="i3">Ground Connection</td></tr>
+            <tr><td align="left" port="i4">DMM Measurement</td></tr>
+            <tr><td align="left" port="i5">Reference/Optional</td></tr>
+            </table>>]
+        key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+            <tr><td port="i1">&nbsp;</td></tr>
+            <tr><td port="i2">&nbsp;</td></tr>
+            <tr><td port="i3">&nbsp;</td></tr>
+            <tr><td port="i4">&nbsp;</td></tr>
+            <tr><td port="i5">&nbsp;</td></tr>
+        </table>>]
+        key:i1:e -> key2:i1:w [color=blue, penwidth=1]
+        key:i2:e -> key2:i2:w [color=green, penwidth=1, style=dashed]
+        key:i3:e -> key2:i3:w [color=gray, penwidth=1, style=dotted]
+        key:i4:e -> key2:i4:w [color=purple, penwidth=1, style=dotted]
+        key:i5:e -> key2:i5:w [color=blue, penwidth=1, style=dashed]
+    }
+    
+    // Define node styles
+    subgraph cluster_instruments {
+        label="Test Instruments";
+        style=filled;
+        color=lightgray;
+
+        signal_gen [shape=none, image="signal_generator.png", label="Signal Generator", labelloc=b, fixedsize=true, width=3.0, height=1.5, color=white]
+        power_supply [label="DC Power Supply", fillcolor=lightgreen];
+        thd_analyzer [label="Spectrum Analyzer", fillcolor=lightyellow];
+        dmm [label="Digital Multimeter", fillcolor=lightcyan];
+    }
+    
+    subgraph cluster_dut_section {
+        label="Device Under Test Section";
+        style=filled;
+        color=lightpink;
+        
+        input_atten [label="Input Attenuator\n(Optional)", fillcolor=white];
+        dut [label="DUT\n(Device Under Test)", fillcolor=orange];
+        output_atten [label="Output Attenuator\n(Optional)", fillcolor=white];
+        load [label="Load", fillcolor=lightgray];
+    }
+    
+    subgraph cluster_support {
+        label="Support Components";
+        fontname="Arial";
+        style=filled;
+        color=lavender;
+        
+        ground [label="Ground Reference", fillcolor=lightsteelblue];
+    }
+    
+    // === MAIN SIGNAL PATH (Left to Right) ===
+    signal_gen -> input_atten [label="Pure Sine Wave\n(e.g., 1 kHz)", color=blue, penwidth=1, weight=10];
+    input_atten -> dut [label="Test Signal", color=blue, penwidth=1, weight=10];
+    dut -> output_atten [label="Output + Harmonics", color=red, penwidth=1, weight=10];
+    output_atten -> thd_analyzer [label="To Analysis", color=red, penwidth=1, weight=10];
+    
+    // === SECONDARY CONNECTIONS ===
+    // Power connection (vertical from top)
+    power_supply -> dut [label="DC Power\n±Vcc", color=green, penwidth=1, style=dashed];
+    
+    // Load connection (downward from output)
+    output_atten -> load [label="Load Connection", color=black, penwidth=1, dir=both];
+    
+    // DMM measurement connections
+    dmm -> dut [label="Voltage/Current\nMeasurement", color=purple, penwidth=1, style=dotted];
+    dmm -> power_supply [label="Supply Monitor", color=purple, penwidth=1, style=dotted];
+    dmm -> load [label="Load Check", color=purple, penwidth=1, style=dotted];
+    
+    // Reference measurement path (bypass)
+    signal_gen -> thd_analyzer [label="Reference\n(Baseline)", color=blue, penwidth=1, style=dashed];
+    
+    // === GROUND CONNECTIONS (Bottom level) ===
+    ground -> signal_gen [style=dotted, color=gray, penwidth=1];
+    ground -> dut [style=dotted, color=gray, penwidth=1];
+    ground -> thd_analyzer [style=dotted, color=gray, penwidth=1];
+    ground -> power_supply [style=dotted, color=gray, penwidth=1];
+    ground -> load [style=dotted, color=gray, penwidth=1];
+}

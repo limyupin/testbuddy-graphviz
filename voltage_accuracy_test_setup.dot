@@ -1,0 +1,94 @@
+digraph voltage_accuracy_test {
+    // Graph settings
+    rankdir=LR;
+    node [shape=box, style=filled, fontname="Arial"];
+    edge [fontname="Arial", fontsize=10];
+    
+    // Force ranking to organize layout - legend at top left
+    {rank=source; legend_cluster;}
+    {rank=same; power_supply;}
+    {rank=same; dmm_ref;}
+    {rank=same; dut;}
+    {rank=same; load_box; dmm_output;}
+    {rank=sink; data_logger;}
+    
+    // Legend subgraph - positioned at top left
+    subgraph cluster_legend { 
+        label = "Legend";
+        fontname = "Arial";
+        rankdir=TB;
+        rank=source;
+        node [shape=plaintext, style="", fillcolor=none];
+        legend_cluster [style=invis]; // invisible node for ranking
+        key [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+            <tr><td align="left" port="i1" width="150">Main Signal Path</td></tr>
+            <tr><td align="left" port="i2">Power Connection</td></tr>
+            <tr><td align="left" port="i3">Ground Connection</td></tr>
+            <tr><td align="left" port="i4">DMM Measurement</td></tr>
+            <tr><td align="left" port="i5">Data Collection</td></tr>
+            </table>>]
+        key2 [label=<<table border="0" cellpadding="2" cellspacing="0" cellborder="0">
+            <tr><td port="i1">&nbsp;</td></tr>
+            <tr><td port="i2">&nbsp;</td></tr>
+            <tr><td port="i3">&nbsp;</td></tr>
+            <tr><td port="i4">&nbsp;</td></tr>
+            <tr><td port="i5">&nbsp;</td></tr>
+        </table>>]
+        key:i1:e -> key2:i1:w [color=blue, penwidth=1]
+        key:i2:e -> key2:i2:w [color=green, penwidth=1, style=dashed]
+        key:i3:e -> key2:i3:w [color=gray, penwidth=1, style=dotted]
+        key:i4:e -> key2:i4:w [color=purple, penwidth=1, style=dotted]
+        key:i5:e -> key2:i5:w [color=darkgreen, penwidth=1]
+    }
+    
+    // Define node styles
+    subgraph cluster_instruments {
+        label="Test Instruments";
+        style=filled;
+        color=lightgray;
+
+        power_supply [label="DC Power Supply\n(Input Power)", fillcolor=lightgreen];
+        dmm_ref [label="Reference DMM\n(Input Monitor)", fillcolor=lightcyan];
+        dmm_output [label="High Precision DMM\n(Output Measurement)", fillcolor=lightyellow];
+        data_logger [label="Data Logger/\nComputer", fillcolor=lightsteelblue];
+    }
+    
+    subgraph cluster_dut_section {
+        label="Device Under Test Section";
+        style=filled;
+        color=lightpink;
+        
+        dut [label="DUT Component\n(Voltage Regulator/\nReference/Circuit)", fillcolor=orange];
+        load_box [label="Electronic Load", fillcolor=lightgray];
+    }
+    
+    subgraph cluster_support {
+        label="Support Components";
+        fontname="Arial";
+        style=filled;
+        color=lavender;
+        
+        ground [label="Ground Reference", fillcolor=lightsteelblue];
+    }
+    
+    // === MAIN SIGNAL PATH ===
+    power_supply -> dut [label="Input Power\n(e.g., 12V)", color=blue, penwidth=2, weight=10];
+    dut -> load_box [label="Output Voltage\n(e.g., 5V)", color=red, penwidth=2, weight=10];
+    
+    // === MEASUREMENT CONNECTIONS ===
+    dmm_ref -> power_supply [label="Input Voltage\nMonitoring", color=purple, penwidth=1, style=dotted];
+    dmm_output -> dut [label="Output Voltage\nMeasurement", color=purple, penwidth=2, style=dotted];
+    
+    // === DATA COLLECTION ===
+    dmm_ref -> data_logger [label="Input Data", color=darkgreen, penwidth=1];
+    dmm_output -> data_logger [label="Output Data", color=darkgreen, penwidth=1];
+    
+    // === GROUND CONNECTIONS ===
+    ground -> power_supply [style=dotted, color=gray, penwidth=1];
+    ground -> dut [style=dotted, color=gray, penwidth=1];
+    ground -> dmm_ref [style=dotted, color=gray, penwidth=1];
+    ground -> dmm_output [style=dotted, color=gray, penwidth=1];
+    ground -> load_box [style=dotted, color=gray, penwidth=1];
+    ground -> data_logger [style=dotted, color=gray, penwidth=1];
+
+}

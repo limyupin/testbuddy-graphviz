@@ -1,0 +1,202 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>GraphViz PNG Display Examples</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            max-width: 1200px;
+            margin: 0 auto;
+            padding: 20px;
+        }
+        .section {
+            margin: 30px 0;
+            padding: 20px;
+            border: 1px solid #ddd;
+            border-radius: 8px;
+        }
+        .generated-image {
+            max-width: 100%;
+            height: auto;
+            border: 1px solid #ccc;
+            margin: 10px 0;
+        }
+        button {
+            background: #007bff;
+            color: white;
+            border: none;
+            padding: 10px 20px;
+            border-radius: 4px;
+            cursor: pointer;
+            margin: 5px;
+        }
+        button:hover {
+            background: #0056b3;
+        }
+        .error {
+            color: red;
+            margin: 10px 0;
+        }
+        .success {
+            color: green;
+            margin: 10px 0;
+        }
+        #imageContainer {
+            margin: 20px 0;
+        }
+        .file-input {
+            margin: 10px 0;
+        }
+        select {
+            padding: 8px;
+            margin: 5px;
+            border: 1px solid #ddd;
+            border-radius: 4px;
+            background: white;
+        }
+        label {
+            font-weight: bold;
+            margin-right: 10px;
+        }
+    </style>
+</head>
+<body>
+    <h1>GraphViz PNG Display Examples</h1>
+
+    <!-- Method 2: Generate and Display from Existing File -->
+    <div class="section">
+        <h2>Method 2: Generate and Display from Existing File</h2>
+        <div>
+            <label for="dotFileSelect">Choose DOT file:</label>
+            <select id="dotFileSelect">
+                <option value="voltage_accuracy_test_setup.dot">voltage_accuracy_test_setup.dot</option>
+                <option value="harmonic_distortion_test_setup.dot">harmonic_distortion_test_setup.dot</option>
+            </select>
+            <br><br>
+            <label for="signalGenSelect">Signal Generator Image:</label>
+            <select id="signalGenSelect">
+                <option value="signal_generator.png">signal_generator.png</option>
+                <option value="signal_generator2.png">signal_generator2.png</option>
+            </select>
+            <br><br>
+            <button onclick="generateFromExisting()">Generate PNG</button>
+            <button onclick="loadDotFiles()">Refresh File List</button>
+        </div>
+        <div id="result2"></div>
+        <div id="imageContainer2"></div>
+    </div>
+
+    <script>
+        // Load available DOT files from the API
+        async function loadDotFiles() {
+            try {
+                const response = await fetch('http://localhost:5000/list_dot_files');
+                const result = await response.json();
+                
+                if (result.dot_files && result.dot_files.length > 0) {
+                    const select = document.getElementById('dotFileSelect');
+                    select.innerHTML = ''; // Clear existing options
+                    
+                    result.dot_files.forEach(filename => {
+                        const option = document.createElement('option');
+                        option.value = filename;
+                        option.textContent = filename;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log(`Loaded ${result.dot_files.length} DOT files`);
+                } else {
+                    console.log('No DOT files found');
+                }
+            } catch (error) {
+                console.error('Error loading DOT files:', error);
+            }
+        }
+
+        // Load available signal generator images from the API
+        async function loadSignalGeneratorImages() {
+            try {
+                const response = await fetch('http://localhost:5000/list_signal_generator_images');
+                const result = await response.json();
+                
+                if (result.signal_generator_images && result.signal_generator_images.length > 0) {
+                    const select = document.getElementById('signalGenSelect');
+                    select.innerHTML = ''; // Clear existing options
+                    
+                    result.signal_generator_images.forEach(filename => {
+                        const option = document.createElement('option');
+                        option.value = filename;
+                        option.textContent = filename;
+                        select.appendChild(option);
+                    });
+                    
+                    console.log(`Loaded ${result.signal_generator_images.length} signal generator images`);
+                } else {
+                    console.log('No signal generator images found');
+                }
+            } catch (error) {
+                console.error('Error loading signal generator images:', error);
+            }
+        }
+
+        // Load DOT files and signal generator images when page loads
+        window.addEventListener('DOMContentLoaded', () => {
+            loadDotFiles();
+            loadSignalGeneratorImages();
+        });
+
+        // Method 2: Generate from existing file
+        async function generateFromExisting() {
+            const resultDiv = document.getElementById('result2');
+            const imageContainer = document.getElementById('imageContainer2');
+            const selectedFile = document.getElementById('dotFileSelect').value;
+            const selectedSignalGen = document.getElementById('signalGenSelect').value;
+            
+            if (!selectedFile) {
+                resultDiv.innerHTML = '<div class="error">Please select a DOT file first</div>';
+                return;
+            }
+            
+            try {
+                resultDiv.innerHTML = `<p>Generating PNG from ${selectedFile} with signal generator: ${selectedSignalGen}...</p>`;
+                
+                const requestBody = { 
+                    filename: selectedFile,
+                    signal_generator_image: selectedSignalGen 
+                };
+                
+                const response = await fetch('http://localhost:5000/generate_from_existing', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json',
+                    },
+                    body: JSON.stringify(requestBody)
+                });
+                
+                const result = await response.json();
+                
+                if (result.output_file) {
+                    resultDiv.innerHTML = `
+                        <div class="success">Success! Generated: ${result.output_file}</div>
+                        <div>Using signal generator image: ${result.signal_generator_image || selectedSignalGen}</div>
+                    `;
+                    
+                    // Display the image
+                    imageContainer.innerHTML = `
+                        <img src="http://localhost:5000/image/${result.output_file}" 
+                             alt="Generated Graph" class="generated-image">
+                        <p><a href="http://localhost:5000/download/${result.output_file}" 
+                             target="_blank">Download PNG</a></p>
+                    `;
+                } else {
+                    resultDiv.innerHTML = `<div class="error">Error: ${result.error}</div>`;
+                }
+            } catch (error) {
+                resultDiv.innerHTML = `<div class="error">Error: ${error.message}</div>`;
+            }
+        }
+    </script>
+</body>
+</html>
