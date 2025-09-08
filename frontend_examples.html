@@ -92,7 +92,7 @@
         // Load available DOT files from the API
         async function loadDotFiles() {
             try {
-                const response = await fetch('http://localhost:5000/list_dot_files');
+                const response = await fetch('https://testbuddy-graphviz.onrender.com/list_dot_files');
                 const result = await response.json();
                 
                 if (result.dot_files && result.dot_files.length > 0) {
@@ -118,7 +118,7 @@
         // Load available signal generator images from the API
         async function loadSignalGeneratorImages() {
             try {
-                const response = await fetch('http://localhost:5000/list_signal_generator_images');
+                const response = await fetch('https://testbuddy-graphviz.onrender.com/list_signal_generator_images');
                 const result = await response.json();
                 
                 if (result.signal_generator_images && result.signal_generator_images.length > 0) {
@@ -167,7 +167,7 @@
                     signal_generator_image: selectedSignalGen 
                 };
                 
-                const response = await fetch('http://localhost:5000/generate_from_existing', {
+                const response = await fetch('https://testbuddy-graphviz.onrender.com/generate_from_existing', {
                     method: 'POST',
                     headers: {
                         'Content-Type': 'application/json',
@@ -185,9 +185,9 @@
                     
                     // Display the image
                     imageContainer.innerHTML = `
-                        <img src="http://localhost:5000/image/${result.output_file}" 
+                        <img src="https://testbuddy-graphviz.onrender.com/image/${result.output_file}" 
                              alt="Generated Graph" class="generated-image">
-                        <p><a href="http://localhost:5000/download/${result.output_file}" 
+                        <p><a href="https://testbuddy-graphviz.onrender.com/download/${result.output_file}" 
                              target="_blank">Download PNG</a></p>
                     `;
                 } else {
