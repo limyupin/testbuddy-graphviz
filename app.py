@@ -195,6 +195,7 @@ def generate_png_from_existing():
         
         filename = data['filename']
         signal_generator_image = data.get('signal_generator_image', 'signal_generator.png')  # Default to signal_generator.png
+        spectrum_analyzer_image = data.get('spectrum_analyzer_image', 'spectrum_analyzer.png')  # Default to spectrum_analyzer.png
         filepath = Path(filename)
         
         if not filepath.exists():
@@ -204,7 +205,7 @@ def generate_png_from_existing():
             return jsonify({"error": "Invalid file type. Only .dot and .gv files allowed"}), 400
         
         # Generate PNG with optional signal generator image selection
-        png_data = generate_png_from_dot_file(str(filepath), signal_generator_image)
+        png_data = generate_png_from_dot_file(str(filepath), signal_generator_image, spectrum_analyzer_image)
         
         # Save PNG output
         file_id = str(uuid.uuid4())
@@ -253,28 +254,36 @@ def serve_image(filename):
         logger.error(f"Error serving image: {str(e)}")
         return jsonify({"error": str(e)}), 500
 
-def generate_png_from_dot_file(dot_filepath, signal_generator_image='signal_generator.png'):
+def generate_png_from_dot_file(dot_filepath, signal_generator_image='signal_generator.png', spectrum_analyzer_image='spectrum_analyzer.png'):
     """Generate PNG data from DOT file with optional signal generator image selection"""
     try:
         # Read DOT file content
         with open(dot_filepath, 'r') as f:
             dot_content = f.read()
         
-        # Replace signal generator image if specified and file contains it
-        if 'image="signal_generator.png"' in dot_content and signal_generator_image != 'signal_generator.png':
-            # Validate that the requested image exists
-            if not os.path.exists(signal_generator_image):
-                raise Exception(f"Signal generator image '{signal_generator_image}' not found")
-            
-            dot_content = dot_content.replace('image="signal_generator.png"', f'image="{signal_generator_image}"')
-            logger.info(f"Replaced signal generator image with: {signal_generator_image}")
-        elif 'image="signal_generator2.png"' in dot_content and signal_generator_image != 'signal_generator2.png':
-            # Handle case where DOT file already uses signal_generator2.png
-            if not os.path.exists(signal_generator_image):
-                raise Exception(f"Signal generator image '{signal_generator_image}' not found")
-            
-            dot_content = dot_content.replace('image="signal_generator2.png"', f'image="{signal_generator_image}"')
-            logger.info(f"Replaced signal generator image with: {signal_generator_image}")
+        if 'harmonic_distortion_test_setup.dot' in dot_filepath:
+            if 'image="signal_generator.png"' in dot_content and signal_generator_image != 'signal_generator.png':
+                if not os.path.exists(signal_generator_image):
+                    logger.warning(f"Signal generator image '{signal_generator_image}' not found, using default.")
+                    signal_generator_image = 'signal_generator.png'
+                dot_content = dot_content.replace('image="signal_generator.png"', f'image="{signal_generator_image}"')
+                signal_generator_image_label = signal_generator_image.replace('.png', '')
+                dot_content = dot_content.replace('label="Signal Generator"', f'label="Keysight Technologies {signal_generator_image_label}"')
+            if 'image="spectrum_analyzer.png"' in dot_content and spectrum_analyzer_image != 'spectrum_analyzer.png':
+                if not os.path.exists(spectrum_analyzer_image):
+                    logger.warning(f"Spectrum analyzer image '{spectrum_analyzer_image}' not found, using default.")
+                    spectrum_analyzer_image = 'spectrum_analyzer.png'
+                dot_content = dot_content.replace('image="spectrum_analyzer.png"', f'image="{spectrum_analyzer_image}"')
+                spectrum_analyzer_image_label = spectrum_analyzer_image.replace('.png', '')
+                dot_content = dot_content.replace('label="Spectrum Analyzer"', f'label="Keysight Technologies {spectrum_analyzer_image_label}"')
+        elif 'voltage_accuracy_test_setup.dot' in dot_filepath:
+            # Similar logic for voltage_accuracy_test_setup.dot if needed
+            if 'image="signal_generator.png"' in dot_content and signal_generator_image != 'signal_generator.png':
+                if not os.path.exists(signal_generator_image):
+                    raise Exception(f"Signal generator image '{signal_generator_image}' not found")
+                
+                dot_content = dot_content.replace('image="signal_generator.png"', f'image="{signal_generator_image}"')
+                logger.info(f"Replaced signal generator image with: {signal_generator_image}")
         
         # Create graphviz Source object
         src = graphviz.Source(dot_content)

@@ -47,7 +47,7 @@ digraph voltage_accuracy_test {
         style=filled;
         color=lightgray;
 
-        power_supply [label="DC Power Supply\n(Input Power)", fillcolor=lightgreen];
+        power_supply [shape=none, image="dc_power_supply.png", label="DC Power Supply\n(Input Power)", fillcolor=lightgreen];
         dmm_ref [label="Reference DMM\n(Input Monitor)", fillcolor=lightcyan];
         dmm_output [label="High Precision DMM\n(Output Measurement)", fillcolor=lightyellow];
         data_logger [label="Data Logger/\nComputer", fillcolor=lightsteelblue];

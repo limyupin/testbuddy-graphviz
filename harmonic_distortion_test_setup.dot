@@ -10,7 +10,7 @@ digraph harmonic_distortion_test {
     {rank=same; input_atten; dmm;}
     {rank=same; dut;}
     {rank=same; output_atten; load;}
-    {rank=sink; thd_analyzer;}
+    {rank=sink; spectrum_analyzer;}
     
     // Legend subgraph - positioned at top left
     subgraph cluster_legend { 
@@ -49,7 +49,7 @@ digraph harmonic_distortion_test {
 
         signal_gen [shape=none, image="signal_generator.png", label="Signal Generator", labelloc=b, fixedsize=true, width=3.0, height=1.5, color=white]
         power_supply [label="DC Power Supply", fillcolor=lightgreen];
-        thd_analyzer [label="Spectrum Analyzer", fillcolor=lightyellow];
+        spectrum_analyzer [shape=none, image="spectrum_analyzer.png", label="Spectrum Analyzer", labelloc=b, fixedsize=true, width=3.0, height=1.5, color=white];
         dmm [label="Digital Multimeter", fillcolor=lightcyan];
     }
     
@@ -77,7 +77,7 @@ digraph harmonic_distortion_test {
     signal_gen -> input_atten [label="Pure Sine Wave\n(e.g., 1 kHz)", color=blue, penwidth=1, weight=10];
     input_atten -> dut [label="Test Signal", color=blue, penwidth=1, weight=10];
     dut -> output_atten [label="Output + Harmonics", color=red, penwidth=1, weight=10];
-    output_atten -> thd_analyzer [label="To Analysis", color=red, penwidth=1, weight=10];
+    output_atten -> spectrum_analyzer [label="To Analysis", color=red, penwidth=1, weight=10];
     
     // === SECONDARY CONNECTIONS ===
     // Power connection (vertical from top)
@@ -92,12 +92,12 @@ digraph harmonic_distortion_test {
     dmm -> load [label="Load Check", color=purple, penwidth=1, style=dotted];
     
     // Reference measurement path (bypass)
-    signal_gen -> thd_analyzer [label="Reference\n(Baseline)", color=blue, penwidth=1, style=dashed];
+    signal_gen -> spectrum_analyzer [label="Reference\n(Baseline)", color=blue, penwidth=1, style=dashed];
     
     // === GROUND CONNECTIONS (Bottom level) ===
     ground -> signal_gen [style=dotted, color=gray, penwidth=1];
     ground -> dut [style=dotted, color=gray, penwidth=1];
-    ground -> thd_analyzer [style=dotted, color=gray, penwidth=1];
+    ground -> spectrum_analyzer [style=dotted, color=gray, penwidth=1];
     ground -> power_supply [style=dotted, color=gray, penwidth=1];
     ground -> load [style=dotted, color=gray, penwidth=1];
 }
